@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <RootNamespace>Wallet.Api</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.9"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Wallet.Database\Wallet.Database.csproj"/>
+        <ProjectReference Include="..\Wallet.Service\Wallet.Service.csproj"/>
+        <ProjectReference Include="..\Wallet.Client\Wallet.Client.csproj"/>
+        <ProjectReference Include="..\Wallet.Scheduler\Wallet.Scheduler.csproj"/>
+    </ItemGroup>
+
+</Project>
