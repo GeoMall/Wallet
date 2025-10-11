@@ -11,10 +11,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Models\"/>
-    </ItemGroup>
-
-    <ItemGroup>
         <ProjectReference Include="..\Wallet.Models\Wallet.Models.csproj"/>
     </ItemGroup>
 
