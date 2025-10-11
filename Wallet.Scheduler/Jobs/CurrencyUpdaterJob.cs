@@ -1,52 +1,35 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Quartz;
+﻿using Quartz;
 using Wallet.Client.ECB;
-using Wallet.Database;
+using Wallet.Service;
 
 namespace Wallet.Scheduler.Jobs;
 
 public class CurrencyUpdaterJob : IJob
 {
-    private readonly WalletDbContext _db;
+    private readonly CurrencyService _currencyService;
     private readonly WalletsEcbClient _walletsEcbClient;
 
     public CurrencyUpdaterJob(
         WalletsEcbClient walletsEcbClient,
-        WalletDbContext db
+        CurrencyService currencyService
     )
     {
         _walletsEcbClient = walletsEcbClient;
-        _db = db;
+        _currencyService = currencyService;
     }
 
     public async Task Execute(IJobExecutionContext context)
     {
         try
         {
-            var result = await _walletsEcbClient.GetCurrencyRates();
-            Console.WriteLine($"Fetched {result.Rates.Count} ECB rates for {result.Date}");
+            var response = await _walletsEcbClient.GetCurrencyRates();
+            Console.WriteLine($"Fetched {response.Rates.Count} ECB rates for time period {response.Date}");
 
-            //TODO: MOVE LOGIC IN A CURRENCY CLASS IN WALLET.DATABASE PROJ
-            foreach (var rate in result.Rates)
-            {
-                var sql = @"
-                    MERGE INTO CurrencyRates AS Target
-                    USING (SELECT {0} AS CurrencyCode, {1} AS Rate, {2} AS ConversionDate) AS Source
-                    ON Target.CurrencyCode = Source.CurrencyCode
-                    WHEN MATCHED THEN 
-                        UPDATE SET Rate = Source.Rate, ConversionDate = Source.ConversionDate
-                    WHEN NOT MATCHED THEN
-                        INSERT (CurrencyCode, Rate, ConversionDate)
-                        VALUES (Source.CurrencyCode, Source.Rate, Source.ConversionDate);";
-
-                await _db.Database.ExecuteSqlRawAsync(sql, rate.Currency, rate.Rate, result.Date);
-            }
-
-            Console.WriteLine($"Successfully merged {result.Rates.Count} currency rates into database");
+            await _currencyService.InsertOrUpdateCurrencyRates(response);
         }
         catch (Exception ex)
         {
-            Console.WriteLine("An Error occurred while syncing ECB currency rates.");
+            Console.WriteLine("An Error occurred while syncing ECB currency rates. " + ex.Message);
         }
     }
 }

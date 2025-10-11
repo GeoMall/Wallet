@@ -22,7 +22,9 @@ public class QuartzJobSchedulerConfiguration : IQuartzJobSchedulerConfiguration
             quartz.AddTrigger(options => options
                 .ForJob(jobKey)
                 .WithIdentity("CurrencyRateUpdateJob-Trigger")
-                .WithCronSchedule("0 0 * * * ?")
+                .WithSimpleSchedule(schedule => schedule
+                    .WithIntervalInMinutes(1)
+                    .RepeatForever())
                 .StartNow());
         });
 

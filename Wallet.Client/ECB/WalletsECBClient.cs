@@ -15,14 +15,14 @@ public class WalletsEcbClient
         _httpClient = httpClient;
     }
 
-    public async Task<CurrencyRate> GetCurrencyRates()
+    public async Task<CurrencyRateResponse> GetCurrencyRates()
     {
         var response = await _httpClient.GetStringAsync(BaseUrl);
 
         return ParseXml(response);
     }
 
-    private static CurrencyRate ParseXml(string xmlResponse)
+    private static CurrencyRateResponse ParseXml(string xmlResponse)
     {
         var xdoc = XDocument.Parse(xmlResponse);
 
@@ -43,7 +43,7 @@ public class WalletsEcbClient
             })
             .ToList();
 
-        return new CurrencyRate
+        return new CurrencyRateResponse
         {
             Date = date,
             Rates = rates

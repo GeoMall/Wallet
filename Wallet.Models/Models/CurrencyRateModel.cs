@@ -1,6 +1,6 @@
 ﻿namespace Wallet.Models.Models;
 
-public class CurrencyRate
+public class CurrencyRateResponse
 {
     public DateTime Date { get; set; }
     public List<ExchangeRate> Rates { get; set; } = new();

@@ -15,9 +15,12 @@ builder.Services.AddDbContext<WalletDbContext>(options =>
     options.UseSqlServer(connectionString));
 
 builder.Services.AddWalletClients();
+builder.Services.AddServices();
 builder.Services.AddSchedulers();
-builder.Services.AddScoped<WalletService>();
 builder.Services.AddControllers();
+
+var scheduler = new QuartzJobSchedulerConfiguration();
+scheduler.Configure(builder.Services);
 
 var app = builder.Build();
 
@@ -25,9 +28,6 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<WalletDbContext>();
     context.Database.EnsureCreated();
-
-    var scheduler = scope.ServiceProvider.GetRequiredService<IQuartzJobSchedulerConfiguration>();
-    scheduler.Configure(builder.Services);
 }
 
 app.MapControllers();

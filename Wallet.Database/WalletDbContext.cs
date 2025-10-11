@@ -27,7 +27,8 @@ public class WalletDbContext : DbContext
         modelBuilder.Entity<CurrencyEntity>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.HasIndex(e => e.CurrencyCode).IsUnique();
+            entity.HasIndex(e => new { e.CurrencyCode, e.ConversionDate })
+                .IsUnique();
             entity.Property(e => e.Rate).HasPrecision(18, 4);
         });
     }
