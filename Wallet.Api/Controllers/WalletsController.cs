@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Wallet.Models.Models;
 using Wallet.Service;
-using Wallet.Service.Models;
 
 namespace Wallet.Api.Controllers;
 
@@ -8,39 +8,49 @@ namespace Wallet.Api.Controllers;
 [Route("api/[controller]")]
 public class WalletsController : ControllerBase
 {
+    private readonly CurrencyService _currencyService;
     private readonly WalletService _walletService;
 
-    public WalletsController(WalletService walletService)
+    public WalletsController(WalletService walletService, CurrencyService currencyService)
     {
         _walletService = walletService;
+        _currencyService = currencyService;
     }
 
     [HttpPost]
     public async Task<IActionResult> CreateWallet([FromBody] WalletRequest request)
     {
-        if (string.IsNullOrEmpty(request.UserId))
-            return BadRequest("UserId is required");
-
         var wallet = await _walletService.CreateWallet(request);
 
         return Ok(wallet);
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<IActionResult> GetWallet(Guid id)
+    public async Task<IActionResult> GetWalletBalance(Guid id, [FromQuery] string? currencyCode)
     {
-        WalletResponse wallet;
+        decimal walletBalance = 0;
 
         try
         {
-            wallet = await _walletService.GetWallet(id);
+            var wallet = await _walletService.GetWallet(id);
+
+            if (currencyCode != null)
+            {
+                var currency = await _currencyService.GetCurrency(currencyCode);
+                walletBalance = _currencyService.ConvertAmount(
+                    wallet.Balance,
+                    wallet.Currency,
+                    currencyCode,
+                    currency.Rate
+                );
+            }
         }
         catch (Exception e)
         {
             return BadRequest(e.Message);
         }
 
-        return Ok(wallet);
+        return Ok(walletBalance);
     }
 
     [HttpPost("{id:guid}/deposit")]

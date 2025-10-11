@@ -1,21 +1,18 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿namespace Wallet.Models.Models;
 
-namespace Wallet.Service.Models;
-
-public class WalletBase
+public record WalletRequest
 {
-    public required string UserId { get; set; }
-    public string Currency { get; set; } = "EUR";
+    public string Currency { get; set; }
 }
 
-public class WalletRequest : WalletBase
+public record WalletCreateResponse
 {
+    public Guid Id { get; set; }
 }
 
-public class WalletResponse : WalletBase
+public record WalletResponse
 {
-    [Key] public Guid Id { get; set; } = Guid.NewGuid();
-
-    public decimal Balance { get; set; } = 0;
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public Guid Id { get; set; }
+    public string Currency { get; set; }
+    public decimal Balance { get; set; }
 }

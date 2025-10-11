@@ -6,4 +6,5 @@ public class CurrencyEntity
     public required string CurrencyCode { get; set; }
     public DateTime ConversionDate { get; set; }
     public decimal Rate { get; set; }
+    public ICollection<WalletEntity>? Wallets { get; set; }
 }

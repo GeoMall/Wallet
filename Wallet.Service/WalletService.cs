@@ -1,5 +1,6 @@
 ﻿using Wallet.Database;
-using Wallet.Service.Models;
+using Wallet.Database.Entities;
+using Wallet.Models.Models;
 
 namespace Wallet.Service;
 
@@ -12,15 +13,14 @@ public class WalletService
         _walletDbContext = walletDbContext;
     }
 
-    public async Task<WalletResponse> CreateWallet(WalletRequest request)
+    public async Task<WalletCreateResponse> CreateWallet(WalletRequest request)
     {
-        var wallet = new WalletResponse
+        var wallet = new WalletEntity
         {
-            UserId = request.UserId,
-            Currency = request.Currency
+            Id = Guid.NewGuid(),
+            CurrencyCode = request.Currency,
+            Balance = 0m
         };
-
-        //TODO: PRODUCE CREATE WALLET KAFKA MESSAGE AFTER SAVE
 
         try
         {
@@ -29,18 +29,20 @@ public class WalletService
         }
         catch (Exception e)
         {
-            Console.WriteLine($"An error occured while creating new wallet for user {request.UserId}: {e.Message}");
+            Console.WriteLine($"An error occured while creating new wallet: {e.Message}");
             throw;
         }
 
-        return wallet;
+        return new WalletCreateResponse { Id = wallet.Id };
     }
 
     public async Task<WalletResponse> GetWallet(Guid id)
     {
         var wallet = await _walletDbContext.Wallets.FindAsync(id);
 
-        return wallet ?? throw new Exception("Wallet not found");
+        return wallet == null
+            ? throw new Exception("Wallet not found")
+            : new WalletResponse { Id = wallet!.Id, Balance = wallet.Balance, Currency = wallet.CurrencyCode };
     }
 
     public async Task<WalletResponse> Deposit(Guid id, decimal amount)

@@ -35,4 +35,26 @@ public class CurrencyService
 
         Console.WriteLine($"Successfully merged {response.Rates.Count} currency rates into database");
     }
+
+    public async Task<CurrencyResponse> GetCurrency(string currencyCode)
+    {
+        var currencyEntity =
+            await _walletDbContext.CurrencyRates.FirstOrDefaultAsync(c => c.CurrencyCode == currencyCode);
+
+        return currencyEntity == null
+            ? throw new Exception($"Currency with code {currencyCode} not found")
+            : new CurrencyResponse { Currency = currencyEntity.CurrencyCode, Rate = currencyEntity.Rate };
+    }
+
+    public decimal ConvertAmount(
+        decimal amount,
+        string walletCurrencyCode,
+        string toCurrencyCode,
+        decimal currencyRate
+    )
+    {
+        if (toCurrencyCode == walletCurrencyCode)
+            return amount;
+        return amount * currencyRate;
+    }
 }
