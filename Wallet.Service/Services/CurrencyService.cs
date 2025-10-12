@@ -16,6 +16,19 @@ public class CurrencyService
 
     public async Task InsertOrUpdateCurrencyRates(CurrencyRateResponse response)
     {
+        // Ensure EUR base currency is always present
+        const string ensureEurSql =
+            """
+                IF NOT EXISTS (SELECT 1 FROM CurrencyRates WHERE CurrencyCode = 'EUR')
+                BEGIN
+                    INSERT INTO CurrencyRates (Id, CurrencyCode, Rate, ConversionDate)
+                    VALUES (NEWID(), 'EUR', 1.0, GETDATE());
+                END;
+            """;
+
+        await _walletDbContext.Database.ExecuteSqlRawAsync(ensureEurSql);
+        Console.WriteLine("Ensured EUR base currency exists.");
+
         var values = string.Join(", ",
             response.Rates.Select(r =>
                 $"(NEWID(), '{r.Currency}', {r.Rate.ToString(CultureInfo.InvariantCulture)}, '{response.Date:yyyy-MM-dd HH:mm:ss}')"));

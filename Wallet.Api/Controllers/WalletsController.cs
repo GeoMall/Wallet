@@ -20,7 +20,6 @@ public class WalletsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateWallet([FromBody] WalletRequest request)
     {
-        //TODO ADD EUR FUNCTIONALITY AS DEFAULT CURRENCY
         try
         {
             var wallet = await _walletService.CreateWallet(request);

@@ -1,18 +1,21 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Wallet.Client;
 using Wallet.Database;
+using Wallet.Models;
+using Wallet.Models.Config;
 using Wallet.Scheduler;
 using Wallet.Scheduler.Schedulers;
 using Wallet.Service;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddConfigOptions(builder.Configuration);
 
-// Connection string for MSSQL container
-const string connectionString =
-    "Server=localhost,1433;Database=WalletDb;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;";
-
-builder.Services.AddDbContext<WalletDbContext>(options =>
-    options.UseSqlServer(connectionString));
+builder.Services.AddDbContext<WalletDbContext>((serviceProvider, options) =>
+{
+    var dbConfig = serviceProvider.GetRequiredService<IOptions<DatabaseConfig>>().Value;
+    options.UseSqlServer(dbConfig.ConnectionString);
+});
 
 builder.Services.AddWalletClients();
 builder.Services.AddServices();
@@ -31,7 +34,7 @@ app.UseSwagger();
 app.UseSwaggerUI(options =>
 {
     options.SwaggerEndpoint("/swagger/v1/swagger.json", "Wallet API v1");
-    options.RoutePrefix = string.Empty; // Makes Swagger UI open at root (http://localhost:5108)
+    options.RoutePrefix = string.Empty;
 });
 
 using (var scope = app.Services.CreateScope())

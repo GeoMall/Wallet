@@ -76,8 +76,8 @@ public class WalletService
 
             //Safety to concurrent API calls with the same wallet ID
             await _walletDbContext.Database.ExecuteSqlRawAsync(
-                "UPDATE Wallets SET Balance = Balance + @p0 WHERE Id =  @p1",
-                new SqlParameter("@p0", amount),
+                "UPDATE Wallets SET Balance = @p0 WHERE Id =  @p1",
+                new SqlParameter("@p0", wallet.Balance),
                 new SqlParameter("@p1", id)
             );
         }
