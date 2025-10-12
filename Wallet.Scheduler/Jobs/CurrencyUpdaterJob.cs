@@ -1,6 +1,6 @@
 ﻿using Quartz;
 using Wallet.Client.ECB;
-using Wallet.Service;
+using Wallet.Service.Services;
 
 namespace Wallet.Scheduler.Jobs;
 

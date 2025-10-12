@@ -19,10 +19,20 @@ builder.Services.AddServices();
 builder.Services.AddSchedulers();
 builder.Services.AddControllers();
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 var scheduler = new QuartzJobSchedulerConfiguration();
 scheduler.Configure(builder.Services);
 
 var app = builder.Build();
+
+app.UseSwagger();
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Wallet API v1");
+    options.RoutePrefix = string.Empty; // Makes Swagger UI open at root (http://localhost:5108)
+});
 
 using (var scope = app.Services.CreateScope())
 {

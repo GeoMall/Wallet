@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Wallet.Database;
 using Wallet.Models.Models;
 
-namespace Wallet.Service;
+namespace Wallet.Service.Services;
 
 public class CurrencyService
 {

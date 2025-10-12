@@ -10,9 +10,17 @@ public record WalletCreateResponse
     public Guid Id { get; set; }
 }
 
-public record WalletResponse
+public record WalletBase
 {
     public Guid Id { get; set; }
-    public string Currency { get; set; }
     public decimal Balance { get; set; }
+}
+
+public record WalletResponse : WalletBase
+{
+    public string Currency { get; set; }
+}
+
+public record AdjustBalanceWalletResponse : WalletBase
+{
 }

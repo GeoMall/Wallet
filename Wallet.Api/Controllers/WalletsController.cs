@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Wallet.Models.Models;
-using Wallet.Service;
+using Wallet.Service.Services;
 
 namespace Wallet.Api.Controllers;
 
@@ -20,18 +20,25 @@ public class WalletsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateWallet([FromBody] WalletRequest request)
     {
-        var wallet = await _walletService.CreateWallet(request);
-
-        return Ok(wallet);
+        //TODO ADD EUR FUNCTIONALITY AS DEFAULT CURRENCY
+        try
+        {
+            var wallet = await _walletService.CreateWallet(request);
+            return Ok(wallet);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
     }
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetWalletBalance(Guid id, [FromQuery] string? currencyCode)
     {
-        decimal walletBalance = 0;
-
         try
         {
+            decimal walletBalance = 0;
+
             var wallet = await _walletService.GetWallet(id);
 
             if (currencyCode != null)
@@ -44,28 +51,38 @@ public class WalletsController : ControllerBase
                     currency.Rate
                 );
             }
+
+            return Ok(walletBalance);
         }
         catch (Exception e)
         {
             return BadRequest(e.Message);
         }
-
-        return Ok(walletBalance);
     }
 
-    [HttpPost("{id:guid}/deposit")]
-    public async Task<IActionResult> Deposit(Guid id, [FromBody] decimal amount)
+    [HttpPost("{id:guid}/adjustBalance")]
+    public async Task<IActionResult> AdjustBalance(
+        Guid id,
+        [FromQuery] decimal amount,
+        [FromQuery] string currency,
+        [FromQuery] string strategy
+    )
     {
-        var wallet = await _walletService.Deposit(id, amount);
+        if (amount < 0)
+            return BadRequest("Amount cannot be negative");
 
-        return Ok(wallet);
-    }
+        if (string.IsNullOrEmpty(strategy))
+            return BadRequest("Strategy cannot be empty. It must be provided to adjust wallet balance");
 
-    [HttpPost("{id:guid}/withdraw")]
-    public async Task<IActionResult> Withdraw(Guid id, [FromBody] decimal amount)
-    {
-        var wallet = await _walletService.Withdraw(id, amount);
+        try
+        {
+            var wallet = await _walletService.AdjustBalance(id, amount, currency, strategy);
 
-        return Ok(wallet);
+            return Ok(wallet);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
     }
 }
