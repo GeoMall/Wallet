@@ -2,16 +2,19 @@
 using Microsoft.EntityFrameworkCore;
 using Wallet.Database;
 using Wallet.Models.Models;
+using Wallet.Service.Cache;
 
 namespace Wallet.Service.Services;
 
 public class CurrencyService
 {
+    private readonly ICurrencyCacheService _currencyCacheService;
     private readonly WalletDbContext _walletDbContext;
 
-    public CurrencyService(WalletDbContext walletDbContext)
+    public CurrencyService(WalletDbContext walletDbContext, ICurrencyCacheService currencyCacheService)
     {
         _walletDbContext = walletDbContext;
+        _currencyCacheService = currencyCacheService;
     }
 
     public async Task InsertOrUpdateCurrencyRates(CurrencyRateResponse response)
@@ -51,12 +54,16 @@ public class CurrencyService
 
     public async Task<CurrencyResponse> GetCurrency(string currencyCode)
     {
-        var currencyEntity =
-            await _walletDbContext.CurrencyRates.FirstOrDefaultAsync(c => c.CurrencyCode == currencyCode);
+        var currencyEntity = await _currencyCacheService.GetCurrencyRateCode(currencyCode);
 
         return currencyEntity == null
             ? throw new Exception($"Currency with code {currencyCode} not found")
             : new CurrencyResponse { Currency = currencyEntity.CurrencyCode, Rate = currencyEntity.Rate };
+    }
+
+    public async Task<Dictionary<string, decimal>> GetAllCurrencies()
+    {
+        return await _walletDbContext.CurrencyRates.ToDictionaryAsync(k => k.CurrencyCode, v => v.Rate);
     }
 
     public decimal ConvertAmount(

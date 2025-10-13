@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Wallet.Service.Cache;
 using Wallet.Service.Factories;
 using Wallet.Service.Services;
 
@@ -12,6 +13,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<WalletService>();
         services.AddScoped<CurrencyService>();
         services.AddScoped<StrategyService>();
+
+        services.AddSingleton<ICurrencyCacheService, CurrencyCacheService>();
 
         return services;
     }
