@@ -8,7 +8,21 @@ using Wallet.Service.Cache;
 
 namespace Wallet.Service.Services;
 
-public class CurrencyService
+public interface ICurrencyService
+{
+    Task InsertOrUpdateCurrencyRates(CurrencyRateResponse response);
+    Task<CurrencyResponse> GetCurrency(string currencyCode);
+    Task PopulateCacheAsync();
+
+    decimal ConvertAmount(
+        decimal amount,
+        string walletCurrencyCode,
+        string toCurrencyCode,
+        decimal currencyRate
+    );
+}
+
+public class CurrencyService : ICurrencyService
 {
     private readonly ICurrencyCacheService _currencyCacheService;
     private readonly WalletDbContext _walletDbContext;
@@ -89,16 +103,6 @@ public class CurrencyService
             : new CurrencyResponse { Currency = currencyEntity.CurrencyCode, Rate = currencyEntity.Rate };
     }
 
-    private async Task<Dictionary<string, decimal>> GetAllCurrencies()
-    {
-        return await _walletDbContext.CurrencyRates
-            .GroupBy(cr => cr.CurrencyCode)
-            .Select(g => g
-                .OrderByDescending(cr => cr.ConversionDate)
-                .FirstOrDefault())
-            .ToDictionaryAsync(k => k!.CurrencyCode, v => v!.Rate);
-    }
-
     public async Task PopulateCacheAsync()
     {
         var currencyRates = await GetAllCurrencies();
@@ -116,5 +120,15 @@ public class CurrencyService
         if (toCurrencyCode == walletCurrencyCode)
             return amount;
         return amount * currencyRate;
+    }
+
+    private async Task<Dictionary<string, decimal>> GetAllCurrencies()
+    {
+        return await _walletDbContext.CurrencyRates
+            .GroupBy(cr => cr.CurrencyCode)
+            .Select(g => g
+                .OrderByDescending(cr => cr.ConversionDate)
+                .FirstOrDefault())
+            .ToDictionaryAsync(k => k!.CurrencyCode, v => v!.Rate);
     }
 }

@@ -7,7 +7,20 @@ using Wallet.Service.Factories;
 
 namespace Wallet.Service.Services;
 
-public class WalletService
+public interface IWalletService
+{
+    Task<WalletCreateResponse> CreateWallet(WalletRequest request);
+    Task<WalletResponse> GetWallet(Guid id);
+
+    Task<AdjustBalanceWalletResponse> AdjustBalance(
+        Guid id,
+        decimal amount,
+        string currencyCode,
+        string strategy
+    );
+}
+
+public class WalletService : IWalletService
 {
     private readonly CurrencyService _currencyService;
     private readonly StrategyFactory _strategyFactory;

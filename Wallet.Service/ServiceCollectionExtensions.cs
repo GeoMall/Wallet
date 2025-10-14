@@ -10,8 +10,8 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
         services.AddScoped<StrategyFactory>();
-        services.AddScoped<WalletService>();
-        services.AddScoped<CurrencyService>();
+        services.AddScoped<IWalletService, WalletService>();
+        services.AddScoped<ICurrencyService, CurrencyService>();
         services.AddScoped<StrategyService>();
 
         services.AddSingleton<ICurrencyCacheService, CurrencyCacheService>();

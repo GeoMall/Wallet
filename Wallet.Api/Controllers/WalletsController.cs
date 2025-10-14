@@ -8,10 +8,10 @@ namespace Wallet.Api.Controllers;
 [Route("api/[controller]")]
 public class WalletsController : ControllerBase
 {
-    private readonly CurrencyService _currencyService;
-    private readonly WalletService _walletService;
+    private readonly ICurrencyService _currencyService;
+    private readonly IWalletService _walletService;
 
-    public WalletsController(WalletService walletService, CurrencyService currencyService)
+    public WalletsController(IWalletService walletService, ICurrencyService currencyService)
     {
         _walletService = walletService;
         _currencyService = currencyService;
