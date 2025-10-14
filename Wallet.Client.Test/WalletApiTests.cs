@@ -102,6 +102,43 @@ public class WalletApiTests
     }
 
     [Fact]
+    public async Task WalletApiController_AdjustBalance_SubtractFundsSuccessfully()
+    {
+        var walletId = Guid.NewGuid();
+        var wallet = new AdjustBalanceWalletResponse { Id = walletId, Balance = 100 };
+
+        _walletServiceMock
+            .Setup(s => s.AdjustBalance(walletId, 50, "USD", "SubtractFundsStrategy"))
+            .ReturnsAsync(wallet);
+
+        var result =
+            await _walletController.AdjustBalance(walletId, 50, "USD", "SubtractFundsStrategy") as OkObjectResult;
+
+        Assert.NotNull(result);
+        Assert.Equal(200, result.StatusCode);
+        Assert.Equal(wallet, result.Value);
+    }
+
+    [Fact]
+    public async Task AdjustBalance_ForceSubtractFunds_ReturnsUpdatedWallet()
+    {
+        var walletId = Guid.NewGuid();
+        var wallet = new AdjustBalanceWalletResponse { Id = walletId, Balance = 20 };
+
+        _walletServiceMock
+            .Setup(s => s.AdjustBalance(walletId, 120, "USD", "ForceSubtractFundsStrategy"))
+            .ReturnsAsync(wallet);
+
+        var result =
+            await _walletController.AdjustBalance(walletId, 120, "USD", "ForceSubtractFundsStrategy") as OkObjectResult;
+
+        Assert.NotNull(result);
+        Assert.Equal(200, result.StatusCode);
+        Assert.Equal(wallet, result.Value);
+    }
+
+
+    [Fact]
     public async Task WalletApiController_AdjustBalance_ReturnsBadRequest_WhenAmountNegative()
     {
         var result = await _walletController.AdjustBalance(Guid.NewGuid(), -10, "EUR", "AddFundsStrategy");
