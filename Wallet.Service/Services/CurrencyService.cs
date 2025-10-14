@@ -1,6 +1,8 @@
 ﻿using System.Globalization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Wallet.Database;
+using Wallet.Database.Entities;
 using Wallet.Models.Models;
 using Wallet.Service.Cache;
 
@@ -19,17 +21,37 @@ public class CurrencyService
 
     public async Task InsertOrUpdateCurrencyRates(CurrencyRateResponse response)
     {
-        // Ensure EUR base currency is always present
-        const string ensureEurSql =
-            """
-                IF NOT EXISTS (SELECT 1 FROM CurrencyRates WHERE CurrencyCode = 'EUR')
-                BEGIN
-                    INSERT INTO CurrencyRates (Id, CurrencyCode, Rate, ConversionDate)
-                    VALUES (NEWID(), 'EUR', 1.0, GETDATE());
-                END;
-            """;
+        var newCurrencies = response.Rates
+            .Where(kvp => !_walletDbContext.CurrencyCodes.Any(c => c.CurrencyCode == kvp.Currency))
+            .Select(kvp => new CurrencyEntity { Id = Guid.NewGuid(), CurrencyCode = kvp.Currency })
+            .ToList();
 
-        await _walletDbContext.Database.ExecuteSqlRawAsync(ensureEurSql);
+        if (newCurrencies.Count > 0)
+        {
+            _walletDbContext.CurrencyCodes.AddRange(newCurrencies);
+            await _walletDbContext.SaveChangesAsync();
+        }
+
+        // Ensure EUR base currency is always present
+        var eurCurrency = await _walletDbContext.CurrencyCodes
+            .FirstOrDefaultAsync(c => c.CurrencyCode == "EUR");
+
+        if (eurCurrency == null)
+        {
+            eurCurrency = new CurrencyEntity { Id = Guid.NewGuid(), CurrencyCode = "EUR" };
+            _walletDbContext.CurrencyCodes.Add(eurCurrency);
+
+            _walletDbContext.CurrencyRates.Add(new CurrencyRatesEntity
+            {
+                Id = Guid.NewGuid(),
+                CurrencyCode = "EUR",
+                Rate = 1.0m,
+                ConversionDate = DateTime.UtcNow
+            });
+
+            await _walletDbContext.SaveChangesAsync();
+        }
+
         Console.WriteLine("Ensured EUR base currency exists.");
 
         var values = string.Join(", ",
@@ -54,16 +76,34 @@ public class CurrencyService
 
     public async Task<CurrencyResponse> GetCurrency(string currencyCode)
     {
-        var currencyEntity = await _currencyCacheService.GetCurrencyRateCode(currencyCode);
+        var currencyEntity = _currencyCacheService.GetCurrencyRateCode(currencyCode);
+
+        if (currencyEntity.CurrencyCode.IsNullOrEmpty())
+        {
+            await PopulateCacheAsync();
+            currencyEntity = _currencyCacheService.GetCurrencyRateCode(currencyCode);
+        }
 
         return currencyEntity == null
             ? throw new Exception($"Currency with code {currencyCode} not found")
             : new CurrencyResponse { Currency = currencyEntity.CurrencyCode, Rate = currencyEntity.Rate };
     }
 
-    public async Task<Dictionary<string, decimal>> GetAllCurrencies()
+    private async Task<Dictionary<string, decimal>> GetAllCurrencies()
     {
-        return await _walletDbContext.CurrencyRates.ToDictionaryAsync(k => k.CurrencyCode, v => v.Rate);
+        return await _walletDbContext.CurrencyRates
+            .GroupBy(cr => cr.CurrencyCode)
+            .Select(g => g
+                .OrderByDescending(cr => cr.ConversionDate)
+                .FirstOrDefault())
+            .ToDictionaryAsync(k => k!.CurrencyCode, v => v!.Rate);
+    }
+
+    public async Task PopulateCacheAsync()
+    {
+        var currencyRates = await GetAllCurrencies();
+        await _currencyCacheService.SetCurrencyRates(currencyRates);
+        Console.WriteLine("Successfully Populated Cache");
     }
 
     public decimal ConvertAmount(

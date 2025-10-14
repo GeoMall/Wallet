@@ -10,11 +10,18 @@ public class WalletDbContext : DbContext
     }
 
     public DbSet<WalletEntity> Wallets { get; set; }
-    public DbSet<CurrencyEntity> CurrencyRates { get; set; }
+    public DbSet<CurrencyRatesEntity> CurrencyRates { get; set; }
+    public DbSet<CurrencyEntity> CurrencyCodes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<CurrencyEntity>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.CurrencyCode);
+        });
 
         modelBuilder.Entity<WalletEntity>(entity =>
         {
@@ -33,9 +40,15 @@ public class WalletDbContext : DbContext
             entity.HasIndex(e => e.CurrencyCode);
         });
 
-        modelBuilder.Entity<CurrencyEntity>(entity =>
+        modelBuilder.Entity<CurrencyRatesEntity>(entity =>
         {
             entity.HasKey(e => e.Id);
+
+            entity.HasOne(cr => cr.Currency) // each CurrencyRate has one Currency
+                .WithMany(c => c.Currency) // each Currency has many CurrencyRates
+                .HasForeignKey(cr => cr.CurrencyCode) // FK property
+                .HasPrincipalKey(c => c.CurrencyCode); // PK in Currency
+
             entity.HasIndex(e => new { e.CurrencyCode, e.ConversionDate })
                 .IsUnique();
             entity.Property(e => e.Rate).HasPrecision(18, 4);

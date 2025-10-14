@@ -1,58 +1,44 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using Wallet.Database.Entities;
-using Wallet.Models.Models;
-using Wallet.Service.Services;
 
 namespace Wallet.Service.Cache;
 
 public interface ICurrencyCacheService
 {
-    Task<Dictionary<string, decimal>> GetCurrencyRates();
-    Task SetCurrencyRates(CurrencyRateResponse rates);
-    Task<CurrencyEntity> GetCurrencyRateCode(string currencyCode);
+    Dictionary<string, decimal> GetCurrencyRates();
+    Task SetCurrencyRates(Dictionary<string, decimal> rates);
+    CurrencyRatesEntity GetCurrencyRateCode(string currencyCode);
 }
 
 public class CurrencyCacheService : ICurrencyCacheService
 {
     private const string CacheKey = "CurrencyRates";
     private readonly IMemoryCache _cache;
-    private readonly CurrencyService _currencyService;
 
-    public CurrencyCacheService(IMemoryCache cache, CurrencyService currencyService)
+    public CurrencyCacheService(IMemoryCache cache)
     {
         _cache = cache;
-        _currencyService = currencyService;
     }
 
-    public Task SetCurrencyRates(CurrencyRateResponse rates)
+    public Task SetCurrencyRates(Dictionary<string, decimal> rates)
     {
-        var cacheDict = rates.Rates.ToDictionary(
-            k => k.Currency,
-            v => v.Rate
-        );
-
-        _cache.Set(CacheKey, cacheDict);
+        _cache.Set(CacheKey, rates);
 
         return Task.CompletedTask;
     }
 
-    public async Task<Dictionary<string, decimal>> GetCurrencyRates()
+    public Dictionary<string, decimal> GetCurrencyRates()
     {
-        if (_cache.TryGetValue(CacheKey, out Dictionary<string, decimal>? rates))
-            return rates!;
+        _cache.TryGetValue(CacheKey, out Dictionary<string, decimal>? rates);
 
-        //fallback action to retrieve from db and repopulate cache
-        var currencyRates = await _currencyService.GetAllCurrencies();
-        _cache.Set(CacheKey, currencyRates);
-
-        return currencyRates;
+        return rates!;
     }
 
-    public async Task<CurrencyEntity> GetCurrencyRateCode(string currencyCode)
+    public CurrencyRatesEntity GetCurrencyRateCode(string currencyCode)
     {
-        var currencies = await GetCurrencyRates();
+        var currencies = GetCurrencyRates();
         var rate = currencies[currencyCode];
 
-        return new CurrencyEntity { CurrencyCode = currencyCode, Rate = rate };
+        return new CurrencyRatesEntity { CurrencyCode = currencyCode, Rate = rate };
     }
 }

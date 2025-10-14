@@ -1,3 +1,4 @@
+using AspNetCoreRateLimit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Wallet.Client;
@@ -27,6 +28,9 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddMemoryCache();
 
+builder.Services.AddInMemoryRateLimiting();
+builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+
 var scheduler = new QuartzJobSchedulerConfiguration();
 scheduler.Configure(builder.Services);
 
@@ -45,5 +49,6 @@ using (var scope = app.Services.CreateScope())
     context.Database.EnsureCreated();
 }
 
+app.UseIpRateLimiting();
 app.MapControllers();
 app.Run();
