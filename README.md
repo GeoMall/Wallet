@@ -24,7 +24,7 @@ Wallet.Client --> Client Class integrating the ECB Api Endpoint
 
 ## How To Run
 
-1. After cloning and opening the repo, under solution Items folder, there is a file called ` docker-compose.yaml `. Run this docker file so that the MSSql database container is instantiated and the app will run once the database is up and healthy.
+1. After cloning and opening the repo, under `Solution Items` folder (if project is open in ide) or else in the `Wallet/` directory, there is a file called ` docker-compose.yaml `. Run this docker file so that the MSSql database container is instantiated and the app will run once the database is up and healthy.
 2. You can then go on Swagger UI on this url ` http://localhost:5108/index.html ` to view the Wallet Api Endpoints.
 
 
@@ -98,4 +98,9 @@ On delete → Restrict (cannot delete a currency that is referenced by a wallet)
 
 Relationships:
 Many → 1 with CurrencyEntity via CurrencyCode
+
+
+## Rate Limiting
+
+The Wallet Apis are configured to have a rate limiting of 20 requests per minute.
 
