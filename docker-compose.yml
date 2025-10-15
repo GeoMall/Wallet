@@ -1,0 +1,44 @@
+﻿version: '3.9'
+
+services:
+  wallet-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: wallet_db
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "YourStrong!Passw0rd"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    networks:
+      - wallet-net
+    healthcheck:
+      test: [ "CMD-SHELL", "timeout 3 bash -c '</dev/tcp/localhost/1433'" ]
+      interval: 10s
+      retries: 5
+      start_period: 15s
+
+  wallet-api:
+    build:
+      context: .
+      dockerfile: Wallet.Api/Dockerfile
+    container_name: wallet_api
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ConnectionStrings__DefaultConnection: "Server=wallet-db;Database=WalletDb;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;"
+    ports:
+      - "5108:8080"
+    depends_on:
+      wallet-db:
+        condition: service_healthy
+    networks:
+      - wallet-net
+
+volumes:
+  wallet_data:
+  mssql-data:
+
+networks:
+  wallet-net:

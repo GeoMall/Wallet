@@ -1,0 +1,21 @@
+# This is a generated file. Not intended for manual editing.
+version: "3.9"
+services:
+  wallet-api:
+    build:
+      context: "C:\\Users\\George\\RiderProjects\\Wallet"
+      dockerfile: "Wallet.Api/Dockerfile"
+      target: "base"
+    command: []
+    entrypoint:
+    - "dotnet"
+    - "/app/bin/Debug/net9.0/Wallet.Api.dll"
+    environment:
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+    image: "wallet.api:dev"
+    ports: []
+    volumes:
+    - "C:\\Users\\George\\RiderProjects\\Wallet\\Wallet.Api:/app:rw"
+    - "C:\\Users\\George\\RiderProjects\\Wallet:/src:rw"
+    - "C:\\Users\\George\\.nuget\\packages:/root/.nuget/packages"
+    working_dir: "/app"
