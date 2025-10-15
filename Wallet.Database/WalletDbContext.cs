@@ -29,7 +29,6 @@ public class WalletDbContext : DbContext
             entity.Property(e => e.Balance)
                 .HasPrecision(18, 2);
 
-            //Relationship with Currency Entity
             entity
                 .HasOne(w => w.Currency)
                 .WithMany(c => c.Wallets)
@@ -44,10 +43,10 @@ public class WalletDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
 
-            entity.HasOne(cr => cr.Currency) // each CurrencyRate has one Currency
-                .WithMany(c => c.Currency) // each Currency has many CurrencyRates
-                .HasForeignKey(cr => cr.CurrencyCode) // FK property
-                .HasPrincipalKey(c => c.CurrencyCode); // PK in Currency
+            entity.HasOne(cr => cr.Currency) 
+                .WithMany(c => c.Currency)
+                .HasForeignKey(cr => cr.CurrencyCode)
+                .HasPrincipalKey(c => c.CurrencyCode);
 
             entity.HasIndex(e => new { e.CurrencyCode, e.ConversionDate })
                 .IsUnique();
