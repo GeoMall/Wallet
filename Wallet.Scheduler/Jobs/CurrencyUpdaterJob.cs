@@ -6,12 +6,12 @@ namespace Wallet.Scheduler.Jobs;
 
 public class CurrencyUpdaterJob : IJob
 {
-    private readonly CurrencyService _currencyService;
+    private readonly ICurrencyService _currencyService;
     private readonly WalletsEcbClient _walletsEcbClient;
 
     public CurrencyUpdaterJob(
         WalletsEcbClient walletsEcbClient,
-        CurrencyService currencyService
+        ICurrencyService currencyService
     )
     {
         _walletsEcbClient = walletsEcbClient;

@@ -22,13 +22,13 @@ public interface IWalletService
 
 public class WalletService : IWalletService
 {
-    private readonly CurrencyService _currencyService;
+    private readonly ICurrencyService _currencyService;
     private readonly StrategyFactory _strategyFactory;
     private readonly WalletDbContext _walletDbContext;
 
     public WalletService(
         WalletDbContext walletDbContext,
-        CurrencyService currencyService,
+        ICurrencyService currencyService,
         StrategyFactory strategyFactory
     )
     {
@@ -72,7 +72,7 @@ public class WalletService : IWalletService
     public async Task<AdjustBalanceWalletResponse> AdjustBalance(
         Guid id,
         decimal amount,
-        string currencyCode,
+        string? currencyCode,
         string strategy
     )
     {
@@ -80,6 +80,8 @@ public class WalletService : IWalletService
         try
         {
             wallet = await GetWallet(id);
+
+            currencyCode ??= wallet.Currency;
 
             var currency = await _currencyService.GetCurrency(currencyCode);
             var convertedAmount =
