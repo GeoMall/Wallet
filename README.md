@@ -24,10 +24,8 @@ Wallet.Client --> Client Class integrating the ECB Api Endpoint
 
 ## How To Run
 
-1. Open project in Rider or Visual Studio
-2. Under the Wallets.Api Project, there is a file called ` docker-compose.yaml `. Run this docker file so that the MSSql database container is instantiated.
-3. Once the docker container is up, the application can be started. This will create the database and tables with relationships to be used within the app.
-4. You can then go on Swagger UI on this url ` http://localhost:5108/index.html ` to view the Wallet Api Endpoints.
+1. After cloning and opening the repo, under solution Items folder, there is a file called ` docker-compose.yaml `. Run this docker file so that the MSSql database container is instantiated and the app will run once the database is up and healthy.
+2. You can then go on Swagger UI on this url ` http://localhost:5108/index.html ` to view the Wallet Api Endpoints.
 
 
 ## Wallet Endpoints
